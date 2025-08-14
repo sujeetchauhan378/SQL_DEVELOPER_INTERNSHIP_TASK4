@@ -1,0 +1,46 @@
+1. What is GROUP BY?
+GROUP BY groups rows that have the same values in specified columns, allowing aggregate functions (SUM, COUNT, AVG, etc.) to be applied to each group.
+
+2. Difference between WHERE and HAVING?
+
+WHERE: Filters rows before grouping. Cannot use aggregate functions.
+HAVING: Filters groups after grouping. Can use aggregate functions.
+
+3. How does COUNT(*) differ from COUNT(column)?
+
+COUNT(*) counts all rows, including those with NULL values.
+COUNT(column) counts only rows where that specific column is NOT NULL.
+
+4. Can you group by multiple columns?
+Yes. Example:
+SELECT department, MAX(salary) AS highest_salary
+FROM employees
+GROUP BY department;
+
+5. What is ROUND() used for?
+ROUND() is used to round numeric values to a specified number of decimal places.
+Example: ROUND(AVG(price), 2).
+
+6. How do you find the highest salary by department?
+Example query:
+SELECT department, MAX(salary) AS highest_salary
+FROM employees
+GROUP BY department;
+
+7. What is the default behavior of GROUP BY?
+It groups rows based on the columns listed, and all other columns must be aggregated or included in the GROUP BY. The result order is not guaranteed unless you use ORDER BY.
+
+8. Explain AVG and SUM.
+
+SUM: Adds up all numeric values.
+AVG: Calculates the arithmetic mean (total sum ÷ number of non-null rows).
+
+9. How to count distinct values?
+Use COUNT(DISTINCT column_name) to count unique non-null values.
+Example: COUNT(DISTINCT customer_id).
+
+10. What is an aggregate function?
+A function that computes a single result from a set of multiple input rows, such as SUM, AVG, MIN, MAX, COUNT.
+
+
+
