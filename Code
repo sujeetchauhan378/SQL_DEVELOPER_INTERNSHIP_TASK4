@@ -1,0 +1,129 @@
+## 1) Sample schema + seed data
+
+-- Drop if re-running
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS sales;
+
+-- Employees table
+CREATE TABLE employees (
+  emp_id      INT PRIMARY KEY,
+  name        VARCHAR(50),
+  department  VARCHAR(30),
+  salary      DECIMAL(10,2)
+);
+
+INSERT INTO employees (emp_id, name, department, salary) VALUES
+(1,'Asha','Engineering',95000),
+(2,'Rahul','Engineering',105000),
+(3,'Meera','HR',65000),
+(4,'Vikram','Sales',78000),
+(5,'Priya','Sales',82000),
+(6,'Ravi','Engineering',120000),
+(7,'Neha','HR',72000);
+
+-- Sales table
+CREATE TABLE sales (
+  sale_id      INT PRIMARY KEY,
+  order_date   DATE,
+  product      VARCHAR(50),
+  category     VARCHAR(30),
+  region       VARCHAR(30),
+  customer_id  INT,
+  quantity     INT,
+  price        DECIMAL(10,2)  -- unit price
+);
+
+INSERT INTO sales (sale_id, order_date, product, category, region, customer_id, quantity, price) VALUES
+(1,'2024-01-05','Laptop','Electronics','North',101,2,50000),
+(2,'2024-01-06','Mouse','Electronics','North',102,5,500),
+(3,'2024-01-15','Shirt','Clothing','West',103,3,1000),
+(4,'2024-02-02','Headphones','Electronics','South',101,1,3000),
+(5,'2024-02-05','Pants','Clothing','West',104,2,1500),
+(6,'2024-02-08','Shoes','Clothing','East',105,1,2500),
+(7,'2024-03-12','Keyboard','Electronics','North',106,3,1200),
+(8,'2024-03-20','Jacket','Clothing','South',107,1,4000),
+(9,'2024-03-25','Monitor','Electronics','East',108,2,12000);
+
+
+##2) Aggregate queries (SUM, COUNT, AVG, GROUP BY, HAVING)
+
+-- A. Total revenue overall
+SELECT SUM(quantity * price) AS total_revenue
+FROM sales;
+
+-- B. Total revenue by category
+SELECT category, SUM(quantity * price) AS revenue
+FROM sales
+GROUP BY category;
+
+-- C. Orders per region (count of rows)
+SELECT region, COUNT(*) AS num_orders
+FROM sales
+GROUP BY region;
+
+-- D. Average order value (AOV) by region
+SELECT region, AVG(quantity * price) AS avg_order_value
+FROM sales
+GROUP BY region;
+
+-- E. Distinct customers served
+SELECT COUNT(DISTINCT customer_id) AS unique_customers
+FROM sales;
+
+-- F. Monthly revenue (YYYY-MM)
+-- SQLite: use strftime('%Y-%m', order_date)
+SELECT strftime('%Y-%m', order_date) AS ym, SUM(quantity*price) AS revenue
+FROM sales
+GROUP BY ym
+ORDER BY ym;
+
+-- MySQL alternative for F:
+-- SELECT DATE_FORMAT(order_date, '%Y-%m') AS ym, SUM(quantity*price) AS revenue
+-- FROM sales
+-- GROUP BY ym
+-- ORDER BY ym;
+
+-- G. Categories with revenue > 30,000 (HAVING filters groups)
+SELECT category, SUM(quantity*price) AS revenue
+FROM sales
+GROUP BY category
+HAVING SUM(quantity*price) > 30000;
+
+-- H. Top revenue product per category (simple rank-by aggregate)
+-- (shows totals; pick top later in app or add ORDER BY LIMIT per category)
+SELECT category, product, SUM(quantity*price) AS revenue
+FROM sales
+GROUP BY category, product
+ORDER BY category, revenue DESC;
+
+-- I. Employee analytics: avg, min, max salary by department
+SELECT department,
+       COUNT(*)                 AS headcount,
+       ROUND(AVG(salary), 2)    AS avg_salary,
+       MIN(salary)              AS min_salary,
+       MAX(salary)              AS max_salary
+FROM employees
+GROUP BY department;
+
+-- J. Departments with headcount >= 2 (HAVING with COUNT)
+SELECT department, COUNT(*) AS headcount
+FROM employees
+GROUP BY department
+HAVING COUNT(*) >= 2;
+
+-- K. Highest-paid employee per department (uses MAX + join)
+-- Works on both SQLite/MySQL
+WITH max_salary AS (
+  SELECT department, MAX(salary) AS mx
+  FROM employees
+  GROUP BY department
+)
+SELECT e.department, e.name, e.salary
+FROM employees e
+JOIN max_salary m
+  ON e.department = m.department AND e.salary = m.mx
+ORDER BY e.department;
+
+-- L. ROUND() demo: round average revenue per order to 2 decimals
+SELECT ROUND(AVG(quantity*price), 2) AS rounded_avg_order_value
+FROM sales;
